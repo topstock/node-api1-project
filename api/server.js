@@ -8,7 +8,6 @@ const {
     insert,
     update,
     remove,
-    resetDB, // ONLY TESTS USE THIS ONE
   } = require('./users/model'); 
 //import express from 'express
 const server = express();
@@ -22,10 +21,11 @@ server.post('/users', async (req, res) => {
     } else {
       await insert(req.body);
       const newUsers = await find();
-      res.status(200).json(newUsers);
+      const newUser = newUsers.filter( user => user.name === req.body.name && user.bio === req.body.bio);
+      res.status(201).json(newUser[0]);
     }
   } catch(err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "There was an error while saving the user to the database" });
   }
 })
 
@@ -34,7 +34,7 @@ server.get('/users', async (req, res) => {
     const users = await find(); 
     res.status(200).json(users);
   } catch(err) {
-    res.status(500).json({message: err.message});
+    res.status(500).json({message: "The users information could not be retrieved" });
   }
 });
 
@@ -47,7 +47,7 @@ server.get('/users/:id', async (req, res) => {
       res.status(200).json( user );
     }
   } catch(err) {
-    res.status(500).json({message: err.message});
+    res.status(500).json({message: "The users information could not be retrieved"});
   }
 })
 
@@ -62,24 +62,26 @@ server.delete('/users/:id', async (req, res) => {
       res.status(200).json( user );
       }
   } catch(err) {
-    res.status(500).json({message: err.message});
+    res.status(500).json({message: "The user could not be removed"});
   }
 })
 
 server.put('/users/:id', async (req, res) => {
-    try {
-      const id = req.params.id;
-      const user = await findById(id);
-      if (!user) {
-          res.status(404).json({message: "The user with the specified ID does not exist"})
-      } else {
-        await update(id, req.body);
-        const updatedUser = await findById(id);
-        res.status(200).json( updatedUser );
-      }
-    } catch(err) {
-      res.status(500).json({message: err.message});
+  try {
+    const id = req.params.id;
+    const user = await findById(id);
+    if (!user) {
+      res.status(404).json({message: "The user with the specified ID does not exist"})
+    } else if (!req.body.bio || !req.body.name) {
+      res.status(400).json({message: "Please provide name and bio for the user"})
+    } else {  
+      await update(id, req.body);
+      const updatedUser = await findById(id);
+      res.status(200).json( updatedUser );
     }
+  } catch(err) {
+    res.status(500).json({message: "The user information could not be modified"});
+  }
 })
 
 module.exports = server; // EXPORT YOUR SERVER instead of {}

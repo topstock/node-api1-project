@@ -15,7 +15,7 @@ const server = express();
 
 server.use(express.json());  //parse.json from requests
 
-server.post('/users', async(req, res) => {
+server.post('/users', async (req, res) => {
   try {
     await insert(req.body);
     const newUsers = await find();
@@ -34,13 +34,45 @@ server.get('/users', async (req, res) => {
   }
 });
 
-server.get('/users/:id', async (req,res) => {
+server.get('/users/:id', async (req, res) => {
     try {
         const user = await findById(req.params.id);
         if (!user) {
             res.status(404).json({message: 'no user'})
         } else {
           res.status(200).json( user );
+        }
+    } catch(err) {
+        res.status(500).json({message: err.message});
+    }
+})
+
+server.delete('/users/:id', async (req, res) => {
+    try {
+
+        const id = req.params.id;
+        const user = await findById(id);
+        if (!user) {
+            res.status(404).json({message: 'no user'})
+        } else {
+          remove(id);
+          res.status(200).json( user );
+        }
+    } catch(err) {
+        res.status(500).json({message: err.message});
+    }
+})
+
+server.put('/users/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const user = await findById(id);
+        if (!user) {
+            res.status(404).json({message: 'no user'})
+        } else {
+          await update(id, req.body);
+          const updatedUser = await findById(id);
+          res.status(200).json( updatedUser );
         }
     } catch(err) {
         res.status(500).json({message: err.message});

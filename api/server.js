@@ -18,8 +18,8 @@ server.use(express.json());  //parse.json from requests
 server.post('/users', async(req, res) => {
   try {
     await insert(req.body);
-    // const newUsers = await find();
-    // res.status(200).json(newUsers);
+    const newUsers = await find();
+    res.status(200).json(newUsers);
   } catch(err) {
     res.status(500).json({ message: err.message });
   }
@@ -37,7 +37,11 @@ server.get('/users', async (req, res) => {
 server.get('/users/:id', async (req,res) => {
     try {
         const user = await findById(req.params.id);
-        res.status(200).json( user );
+        if (!user) {
+            res.status(404).json({message: 'no user'})
+        } else {
+          res.status(200).json( user );
+        }
     } catch(err) {
         res.status(500).json({message: err.message});
     }

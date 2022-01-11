@@ -17,9 +17,13 @@ server.use(express.json());  //parse.json from requests
 
 server.post('/users', async (req, res) => {
   try {
-    await insert(req.body);
-    const newUsers = await find();
-    res.status(200).json(newUsers);
+    if (!req.body.bio || !req.body.name) {
+      res.status(400).json({message: "Please provide name and bio for the user"})
+    } else {
+      await insert(req.body);
+      const newUsers = await find();
+      res.status(200).json(newUsers);
+    }
   } catch(err) {
     res.status(500).json({ message: err.message });
   }
@@ -35,47 +39,46 @@ server.get('/users', async (req, res) => {
 });
 
 server.get('/users/:id', async (req, res) => {
-    try {
-        const user = await findById(req.params.id);
-        if (!user) {
-            res.status(404).json({message: 'no user'})
-        } else {
-          res.status(200).json( user );
-        }
-    } catch(err) {
-        res.status(500).json({message: err.message});
+  try {
+    const user = await findById(req.params.id);
+    if (!user) {
+        res.status(404).json({message: "The user with the specified ID does not exist"})
+    } else {
+      res.status(200).json( user );
     }
+  } catch(err) {
+    res.status(500).json({message: err.message});
+  }
 })
 
 server.delete('/users/:id', async (req, res) => {
-    try {
-
-        const id = req.params.id;
-        const user = await findById(id);
-        if (!user) {
-            res.status(404).json({message: 'no user'})
-        } else {
-          remove(id);
-          res.status(200).json( user );
-        }
-    } catch(err) {
-        res.status(500).json({message: err.message});
-    }
+  try {
+    const id = req.params.id;
+    const user = await findById(id);
+    if (!user) {
+        res.status(404).json({message: "The user with the specified ID does not exist"})
+    } else {
+      remove(id);
+      res.status(200).json( user );
+      }
+  } catch(err) {
+    res.status(500).json({message: err.message});
+  }
 })
 
 server.put('/users/:id', async (req, res) => {
     try {
-        const id = req.params.id;
-        const user = await findById(id);
-        if (!user) {
-            res.status(404).json({message: 'no user'})
-        } else {
-          await update(id, req.body);
-          const updatedUser = await findById(id);
-          res.status(200).json( updatedUser );
-        }
+      const id = req.params.id;
+      const user = await findById(id);
+      if (!user) {
+          res.status(404).json({message: "The user with the specified ID does not exist"})
+      } else {
+        await update(id, req.body);
+        const updatedUser = await findById(id);
+        res.status(200).json( updatedUser );
+      }
     } catch(err) {
-        res.status(500).json({message: err.message});
+      res.status(500).json({message: err.message});
     }
 })
 
